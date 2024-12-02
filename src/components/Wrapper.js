@@ -11,7 +11,7 @@ import {deviceHeight, deviceWidth} from '../constants/Scaling';
 
 const Wrapper = ({children, style}) => {
   return (
-    <ImageBackground source={BG} resizeMode="stretch" style={styles.container}>
+    <ImageBackground source={BG} resizeMode="cover" style={styles.container}>
       <SafeAreaView style={[styles.safeArea, {...style}]}>
         {children}
       </SafeAreaView>
