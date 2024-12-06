@@ -5,6 +5,11 @@ import Menu from '../assets/images/menu.png';
 import {deviceHeight, deviceWidth} from '../constants/Scaling';
 import Dice from '../components/Dice';
 import {Colors} from '../constants/Colors';
+import Pocket from '../components/Pocket';
+import {Plot1Data, Plot2Data, Plot3Data, Plot4Data} from '../helper/PlotData';
+import VerticalPath from '../components/VerticalPath';
+import HorizontalPath from '../components/HorizontalPath';
+import FourTriangles from '../components/FourTriangles';
 
 const LudoboardScreen = () => {
   return (
@@ -18,7 +23,21 @@ const LudoboardScreen = () => {
           <Dice color={Colors.yellow} rotate />
         </View>
         <View style={styles.ludoBoard}>
-          <View style={styles.plotContainer}></View>
+          <View style={styles.plotContainer}>
+            <Pocket color={Colors.green} player={2} />
+            <VerticalPath cells={Plot2Data} color={Colors.yellow} />
+            <Pocket color={Colors.yellow} player={3} />
+          </View>
+          <View style={styles.pathContainer}>
+            <HorizontalPath cells={Plot1Data} color={Colors.green} />
+            <FourTriangles />
+            <HorizontalPath cells={Plot3Data} color={Colors.blue} />
+          </View>
+          <View style={styles.plotContainer}>
+            <Pocket color={Colors.red} player={1} />
+            <VerticalPath cells={Plot4Data} color={Colors.red} />
+            <Pocket color={Colors.blue} player={4} />
+          </View>
         </View>
         <View style={styles.flexRow}>
           <Dice color={Colors.red} />
@@ -43,11 +62,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
   },
   ludoBoard: {
-    width: '100%',
+    width: deviceWidth,
     height: '100%',
     alignSelf: 'center',
     padding: 10,
-    backgroundColor: 'red',
   },
   plotContainer: {
     width: '100%',
@@ -55,6 +73,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     flexDirection: 'row',
     backgroundColor: '#ccc',
+  },
+  pathContainer: {
+    flexDirection: 'row',
+    width: '100%',
+    height: '20%',
+    justifyContent: 'space-between',
+    backgroundColor: '#1e5162',
   },
 });
 
