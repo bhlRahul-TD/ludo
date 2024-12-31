@@ -1,8 +1,7 @@
 import {StyleSheet, Text, View} from 'react-native';
 import React, {useMemo} from 'react';
-import {Colors} from '../constants/Colors';
-import Pile from './Pile';
-import {ArrowSpot, SafeSpots, StarSpots} from '../helper/PlotData';
+import {Colors} from '../../constants/Colors';
+import {ArrowSpot, SafeSpots, StarSpots} from '../../helper/PlotData';
 import {ArrowRightIcon, StarIcon} from 'react-native-heroicons/outline';
 import {RFValue} from 'react-native-responsive-fontsize';
 

@@ -14,9 +14,28 @@ import {deviceWidth} from '../constants/Scaling';
 import LottieView from 'lottie-react-native';
 import DiceRoll from '../assets/animation/diceroll.json';
 import Arrow from '../assets/images/arrow.png';
+import {useDispatch, useSelector} from 'react-redux';
+import {
+  selectCurrentPlayerChance,
+  selectDiceNo,
+  selectDiceRolled,
+} from '../redux/reducers/gameSelectors';
+import {
+  enableCellSelection,
+  enablePileSelection,
+  updateDiceNo,
+  updatePlayerChance,
+} from '../redux/reducers/gameSlice';
+import {playSound} from '../helper/SoundUtility';
 
 const Dice = React.memo(({color, rotate, player, data}) => {
-  const diceNo = 4;
+  const dispatch = useDispatch();
+  const currentPlayerChance = useSelector(selectCurrentPlayerChance);
+  const isDiceRolled = useSelector(selectDiceRolled);
+  const diceNo = useSelector(selectDiceNo);
+  const playerPieces = useSelector(
+    state => state.game[`player${currentPlayerChance}`],
+  );
   const pileIcon = BackgroundImage.GetImage(color);
   const diceIcon = BackgroundImage.GetImage(diceNo);
   const arrowAnim = useRef(new Animated.Value(0)).current;
@@ -46,6 +65,54 @@ const Dice = React.memo(({color, rotate, player, data}) => {
     animateArrow();
   }, []);
 
+  const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+  const handleDicePress = async () => {
+    const newDiceNo = Math.floor(Math.random() * 6) + 1;
+    playSound('dice_roll');
+    setDiceRolling(true);
+    await delay(800);
+    dispatch(updateDiceNo({diceNo: newDiceNo}));
+    setDiceRolling(false);
+
+    const isAnyPieceAlive = data?.findIndex(i => i.pos != 0 && i.pos != 57);
+    const isAnyPieceLocked = data?.findIndex(i => i.pos == 0);
+
+    if (isAnyPieceAlive == -1) {
+      if (newDiceNo == 6) {
+        dispatch(enablePileSelection({playerNo: player}));
+      } else {
+        let chancePlayer = player + 1;
+        if (chancePlayer > 4) {
+          chancePlayer = 1;
+        }
+        await delay(600);
+        dispatch(updatePlayerChance({chancePlayer: chancePlayer}));
+      }
+    } else {
+      const canMove = playerPieces.some(
+        pile => pile.travelCount + newDiceNo <= 57 && pile.pos != 0,
+      );
+      if (
+        (!canMove && newDiceNo == 6 && isAnyPieceLocked == -1) ||
+        (!canMove && newDiceNo != 6 && isAnyPieceLocked != -1) ||
+        (!canMove && newDiceNo != 6 && isAnyPieceLocked == -1)
+      ) {
+        let chancePlayer = player + 1;
+        if (chancePlayer > 4) {
+          chancePlayer = 1;
+        }
+        await delay(600);
+        dispatch(updatePlayerChance({chancePlayer: chancePlayer}));
+        return;
+      }
+
+      if (newDiceNo == 6) {
+        enablePileSelection({playerNo: player});
+      }
+      dispatch(enableCellSelection({playerNo: player}));
+    }
+  };
+
   return (
     <View style={[styles.flexRow, {transform: [{scaleX: rotate ? -1 : 1}]}]}>
       <View style={styles.border1}>
@@ -66,20 +133,27 @@ const Dice = React.memo(({color, rotate, player, data}) => {
           start={{x: 0, y: 0.5}}
           end={{x: 1, y: 0.5}}>
           <View style={styles.diceContainer}>
-            <TouchableOpacity>
-              <Image source={diceIcon} style={styles.dice} />
-            </TouchableOpacity>
+            {currentPlayerChance === player && !diceRolling && (
+              <>
+                <TouchableOpacity
+                  disabled={isDiceRolled}
+                  onPress={handleDicePress}
+                  activeOpacity={0.4}>
+                  <Image source={diceIcon} style={styles.dice} />
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         </LinearGradient>
       </View>
       <View style={{width: 50, justifyContent: 'center', alignItems: 'center'}}>
-        {diceRolling && (
+        {currentPlayerChance === player && !isDiceRolled && (
           <Animated.View style={{transform: [{translateX: arrowAnim}]}}>
             <Image source={Arrow} style={{width: 50, height: 30}} />
           </Animated.View>
         )}
       </View>
-      {diceRolling ?? (
+      {currentPlayerChance === player && diceRolling && (
         <LottieView
           source={DiceRoll}
           style={styles.rollingDice}
